@@ -14,8 +14,8 @@
       "nette/php-generator": "^3.3",
       "contributte/console": "^0.7.1",
       "tracy/tracy": "^2.6",
-        "nette/robot-loader": "^3.2",
-        "phayes/geophp": "^1.2"
+      "nette/robot-loader": "^3.2",
+      "phayes/geophp": "^1.2"
 
   },
   "autoload": {
