@@ -1,0 +1,4 @@
+<h1>Generated ({count($generatedFiles)})</h1>
+{foreach $generatedFiles as $file => $count}
+{$file} {if $count>1}({$count}&times; !!!!!){else}OK{/if}<br/>
+{/foreach}

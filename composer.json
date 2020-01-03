@@ -1,0 +1,24 @@
+{
+    "name": "zkrat/n-orm-generator",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "zkrat",
+            "email": "hajek@zkrat.net"
+        }
+    ],
+    "require": {
+      "php": ">=7.3.0",
+      "nette/database": "^3.0",
+      "nette/php-generator": "^3.3",
+      "contributte/console": "^0.7.1",
+      "tracy/tracy": "^2.6",
+        "nette/robot-loader": "^3.2",
+        "phayes/geophp": "^1.2"
+
+  },
+  "autoload": {
+    "classmap": ["src/"]
+  }
+}
