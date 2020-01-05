@@ -11,11 +11,11 @@ extensions:
         n.orm.console: NOrmGenerator\Extension\NOrmExtension(%consoleMode%)
 
 n.orm.console:
-# ewquire
+#require
         dbDir: %appDir%/model/nORM/DbAccess
         driverDir: %appDir%/model/nORM/meta
         entityDir: %appDir%/model/nORM/entity
-
+#options
         overwrite: true
         deleteGenFile: true
 
