@@ -2,6 +2,7 @@
 
 namespace NOrmGenerator\ClassModelGenerator;
 
+use NOrmGenerator\ClassModelGenerator\File\FileSaver;
 use NOrmGenerator\DataCollection\DataCollection;
 use NOrmGenerator\ClassModelGenerator\Exception\ForeignKeyException;
 use NOrmGenerator\ClassModelGenerator\Meta\MetaPropertyGenerator;
@@ -15,7 +16,6 @@ use Model\DbDriver\MetaTableColumnsMySqlDriverList;
 use Model\DbDriver\MetaTableMySqlDriverList;
 use Nette\Database\Context;
 use Nette\Database\IRow;
-use Nette\Database\Row;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 
@@ -72,7 +72,7 @@ class MetaDriverGenerator extends CoreGenerator {
 
 		$className=get_class($this->db->getConnection()->getSupplementalDriver());
 
-		return StringManipulator::getClasnameWithoutNamespace($className);
+		return StringManipulator::getClassnameWithoutNamespace($className);
 
 	}
 
@@ -151,9 +151,10 @@ class MetaDriverGenerator extends CoreGenerator {
 		$classRow=$this->metaVariable->getClassRowNameFromString($className);
 
 		$propertyGenerator= new MetaPropertyGenerator($this->metaDriver,$classRow);
-		$propertyGenerator->generateGetter();
-		$propertyGenerator->generateSetter();
-		$propertyGenerator->getClass()->addTrait(TraitClassFill::class);
+		$propertyGenerator->enableGetterGenerator();
+		$propertyGenerator->enableSetterGenerator();
+		$propertyGenerator->addTrait(TraitClassFill::class);
+
 		foreach ($arrayRow as $propertyName => $value){
 			$propertyGenerator->addProperty($propertyName , $value);
 
@@ -168,7 +169,7 @@ class MetaDriverGenerator extends CoreGenerator {
 		$parameter=$this->metaVariable->addDolar($classList,false);
 		$parameterDollar=$this->metaVariable->addDolar($classList);
 
-		$method->addParameter($parameter)->setTypeHint($this->metaVariable->getClassListFromClassName($className,true));
+		$method->addParameter($parameter)->setType($this->metaVariable->getClassListFromClassName($className,true));
 
 		$method->addBody('$this->parent= '.$parameterDollar.';');
 
@@ -178,7 +179,8 @@ class MetaDriverGenerator extends CoreGenerator {
 		if ($propertyGenerator->getPhpNamespace() instanceof PhpNamespace){
 			$classRow =$this->metaVariable->getClassRowNameFromString($className);
 
-			$this->saveFile($this->metaDriver,$propertyGenerator->getPhpNamespace(),$classRow);
+			FileSaver::create($this->metaDriver,$propertyGenerator->getPhpNamespace(),$classRow)->saveFile();
+
 			$tableName=StringManipulator::camelCaseToUnderscore($className);
 
 			$this->createMetaClassListFromTableName($tableName);

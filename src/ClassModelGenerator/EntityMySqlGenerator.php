@@ -4,6 +4,7 @@
 namespace NOrmGenerator\ClassModelGenerator;
 
 
+use NOrmGenerator\ClassModelGenerator\File\FileSaver;
 use NOrmGenerator\ClassModelGenerator\Helpers\StringManipulator;
 use NOrmGenerator\ClassModelGenerator\Logger\ILogger;
 use NOrmGenerator\ClassModelGenerator\Meta\MySqlPhpProperty;
@@ -55,7 +56,7 @@ class EntityMySqlGenerator extends CoreGenerator {
 
 					$classEntity = new MySqlPropertyGenerator($this->metaEntity,$classRow);
 					$classEntity->addTrait(TraitClassFill::class);
-					$classEntity->generateGetter();
+					$classEntity->enableGetterGenerator();
 
 					foreach ($forienKeyList->getTableForeignKeyArray($tableName) as $metaTableColumnsForeinKeysMySqlDriver){
 						/**
@@ -98,7 +99,7 @@ class EntityMySqlGenerator extends CoreGenerator {
 						}
 
 						$methodSetParent=$classEntity->getClass()->addMethod('setParent');
-						$methodSetParent->addParameter('parent')->setTypeHint($typeHint);
+						$methodSetParent->addParameter('parent')->setType($typeHint);
 						$methodSetParent->addComment('@var '.$classList->getName());
 						$methodSetParent->addBody('$this->parent= $parent;');
 
@@ -111,7 +112,7 @@ class EntityMySqlGenerator extends CoreGenerator {
 		}
 		if (is_string($classRow) && strlen($classRow)>0 && $classEntity instanceof  MySqlPropertyGenerator && $classEntity->getPhpNamespace() instanceof PhpNamespace){
 			$this->addExtraFeatures($classEntity->getClass());
-			$this->saveFile($this->metaEntity,$classEntity->getPhpNamespace(),$classRow);
+			FileSaver::create($this->metaEntity,$classEntity->getPhpNamespace(),$classRow)->saveFile();
 
 		}
 
@@ -152,7 +153,7 @@ class EntityMySqlGenerator extends CoreGenerator {
 			 */
 			if ($dbAccessMysqlGenerator->hasGeoProperty()){
 				$staticCreateMetod=$class->addMethod('create')->setStatic(true);
-				$staticCreateMetod->addParameter('array')->setTypeHint('array');
+				$staticCreateMetod->addParameter('array')->setType('array');
 				$class->getNamespace()->addUse(\geoPHP::class);
 				$staticCreateMetod->addBody('$class =new static();');
 				if (!is_null($dbAccessMysqlGenerator->getExtraMetaTableColumnsMySqlDriverList())){

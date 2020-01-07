@@ -16,7 +16,7 @@ class MetaPropertyGenerator extends CorePropertyGenerator {
 
 		$propertyType=$this->getType($value);
 
-		$className=StringManipulator::getClasnameWithoutNamespace($propertyType);
+		$className=StringManipulator::getClassnameWithoutNamespace($propertyType);
 		$classNameLong=StringManipulator::getLongClasnameWithNamespace($propertyType);
 		$usePropertyType=$className;
 		if($this->substituteUse){
@@ -85,6 +85,10 @@ class MetaPropertyGenerator extends CorePropertyGenerator {
 
 	}
 
+	public function addTrait( string $class ) {
+		$this->class->addTrait($class);
+		$this->phpNamespace->addUse($class);
+	}
 
 
 }

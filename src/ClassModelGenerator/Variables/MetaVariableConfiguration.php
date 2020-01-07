@@ -6,36 +6,42 @@ namespace NOrmGenerator\ClassModelGenerator\Variables;
 
 class MetaVariableConfiguration {
 
+    const NAMESPACE='NAMESPACE';
+	const DIR='DIR';
+	const CLASS_PREFIX='CLASS_PREFIX';
+	const CLASS_SUFFIX='CLASS_SUFFIX';
+    const LIST_PREFIX ='LIST_PREFIX';
+	const LIST_SUFFIX='LIST_SUFFIX';
 
 
 	const CONFIG_DB=[
-		'NAMESPACE'=>'dbNamespace',
-		'DIR'=>'dbDir',
-		'CLASS_PREFIX'=>'dbPrefix',
-		'CLASS_SUFFIX'=>'dbSuffix',
-		'LIST_PREFIX'=>'dbListPrefix',
-		'LIST_SUFFIX'=>'dbListSuffix'
+		self::NAMESPACE=>'dbNamespace',
+		self::DIR=>'dbDir',
+		self::CLASS_PREFIX=>'dbPrefix',
+		self::CLASS_SUFFIX=>'dbSuffix',
+		self::LIST_PREFIX=>'dbListPrefix',
+		self::LIST_SUFFIX=>'dbListSuffix'
 	];
 
 
 
 
 	const CONFIG_DRIVER=[
-		'NAMESPACE'=>'driverNamespace',
-		'DIR'=>'driverDir',
-		'CLASS_PREFIX'=>'driverClassPrefix',
-		'CLASS_SUFFIX'=>'driverClassSuffix',
-		'LIST_PREFIX'=>'driverClassListPrefix',
-		'LIST_SUFFIX'=>'driverClassListSuffix'
+		self::NAMESPACE=>'driverNamespace',
+		self::DIR=>'driverDir',
+		self::CLASS_PREFIX=>'driverClassPrefix',
+		self::CLASS_SUFFIX=>'driverClassSuffix',
+		self::LIST_PREFIX=>'driverClassListPrefix',
+		self::LIST_SUFFIX=>'driverClassListSuffix'
 	];
 
 	const CONFIG_ENTITY=[
-		'NAMESPACE'=>'entityNamespace',
-		'DIR'=>'entityDir',
-		'CLASS_PREFIX'=>'entityRowPrefix',
-		'CLASS_SUFFIX'=>'entityRowSuffix',
-		'LIST_PREFIX'=>'entityListPrefix',
-		'LIST_SUFFIX'=>'entityListSuffix'
+		self::NAMESPACE=>'entityNamespace',
+		self::DIR=>'entityDir',
+		self::CLASS_PREFIX=>'entityRowPrefix',
+		self::CLASS_SUFFIX=>'entityRowSuffix',
+		self::LIST_PREFIX=>'entityListPrefix',
+		self::LIST_SUFFIX=>'entityListSuffix'
 	];
 
 
@@ -87,20 +93,16 @@ class MetaVariableConfiguration {
 	/**
 	 * MetaVariableConfiguration constructor.
 	 *
-	 * @param string|null $dir
-	 * @param string|null $namespace
-	 * @param string|null $classSuffix
-	 * @param string|null $classPrefix
-	 * @param string|null $classListSuffix
-	 * @param string|null $classListPrefix
+	 * @param array $values
+	 * @param array|null $config
 	 */
 	private function __construct( array $values, ?array $config) {
-		$this->dir             = isset($values[$config['DIR']]) ? $values[$config['DIR']] : null;
-		$this->namespace       = isset($values[$config['NAMESPACE']]) ? $values[$config['NAMESPACE']] : null;
-		$this->classSuffix     = isset($values[$config['CLASS_SUFFIX']]) ? $values[$config['CLASS_SUFFIX']] : null;
-		$this->classPrefix     = isset($values[$config['CLASS_PREFIX']]) ? $values[$config['CLASS_PREFIX']] : null;
-		$this->classListSuffix = isset($values[$config['LIST_SUFFIX']]) ? $values[$config['LIST_SUFFIX']] : null;
-		$this->classListPrefix = isset($values[$config['LIST_PREFIX']]) ? $values[$config['LIST_PREFIX']] : null;
+		$this->dir             = isset($values[$config[self::DIR]]) ? $values[$config[self::DIR]] : null;
+		$this->namespace       = isset($values[$config[self::NAMESPACE]]) ? $values[$config[self::NAMESPACE]] : null;
+		$this->classSuffix     = isset($values[$config[self::CLASS_SUFFIX]]) ? $values[$config[self::CLASS_SUFFIX]] : null;
+		$this->classPrefix     = isset($values[$config[self::CLASS_PREFIX]]) ? $values[$config[self::CLASS_PREFIX]] : null;
+		$this->classListSuffix = isset($values[$config[self::LIST_SUFFIX]]) ? $values[$config[self::LIST_SUFFIX]] : null;
+		$this->classListPrefix = isset($values[$config[self::LIST_PREFIX]]) ? $values[$config[self::LIST_PREFIX]] : null;
 		$this->overwrite       = isset($values[MetaVariableConfiguration::CONFIG_OVERWRITE]) ? $values[MetaVariableConfiguration::CONFIG_OVERWRITE] : false;
 		$this->deleteGenFile   =isset($values[MetaVariableConfiguration::CONFIG_DELETE_GEN_FILE]) ? $values[MetaVariableConfiguration::CONFIG_DELETE_GEN_FILE] : false;
 	}

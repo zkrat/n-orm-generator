@@ -26,6 +26,11 @@ class BarReport implements IBarPanel{
 			$this->generatedFiles[$fileName]++;
 	}
 
+	public static function addStaticFile($fileName){
+		if(self::hasBarReport())
+			self::getBarReport()->addFile($fileName);
+	}
+
 	/**
 	 * @return BarReport
 	 */

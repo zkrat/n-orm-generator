@@ -3,9 +3,7 @@ namespace NOrmGenerator\Console;
 
 
 use NOrmGenerator\ClassModelGenerator\DbAccessMySqlGenerator;
-use NOrmGenerator\ClassModelGenerator\EntityMySqlGenerator;
 use NOrmGenerator\ClassModelGenerator\MetaDriverGenerator;
-use Model\DbAccess\DbAccessManager;
 use Nette\Database\Context;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -24,7 +22,7 @@ final class OrmCreateCommand extends Command
 	/**
 	 * @var DbAccessMySqlGenerator
 	 */
-	public $entityGenerator;
+	public $dbAccessMySqlGenerator;
 
 
 	/** @var string */
@@ -33,8 +31,8 @@ final class OrmCreateCommand extends Command
 	public function __construct($name=null,array $config,Context $context ) {
 		parent::__construct($name);
 
-		$this->metaDriverGenerator= new MetaDriverGenerator($config,$context);
-		$this->entityGenerator = new DbAccessMySqlGenerator($config,$context);
+		$this->metaDriverGenerator    = new MetaDriverGenerator($config,$context);
+		$this->dbAccessMySqlGenerator = new DbAccessMySqlGenerator($config,$context);
 	}
 
 
@@ -46,7 +44,7 @@ final class OrmCreateCommand extends Command
 
 		$forienKeyList =$this->metaDriverGenerator->getForeinKeyList($datebase);
 
-		$this->entityGenerator->generateFromForienKeyList($forienKeyList);
+		$this->dbAccessMySqlGenerator->generateFromForienKeyList($forienKeyList);
 	}
 
 	protected function configure(): void

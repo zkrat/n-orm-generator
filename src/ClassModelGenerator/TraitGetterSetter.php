@@ -13,9 +13,9 @@ use Nette\PhpGenerator\PhpNamespace;
 
 trait TraitGetterSetter {
 
-	protected $getter=false;
+	protected $getterGenerator=false;
 
-	protected $setter=false;
+	protected $setterGenerator=false;
 
 	/**
 	 * @var MetaVariable
@@ -25,15 +25,15 @@ trait TraitGetterSetter {
 	/**
 	 *
 	 */
-	public function generateGetter(): void {
-		$this->getter=true;
+	public function enableGetterGenerator(): void {
+		$this->getterGenerator =true;
 	}
 
 	/**
 	 *
 	 */
-	public function generateSetter(): void {
-		$this->setter=true;
+	public function enableSetterGenerator(): void {
+		$this->setterGenerator =true;
 	}
 
 
@@ -41,14 +41,14 @@ trait TraitGetterSetter {
 		if ('ClassModelGenerator\Variables\MySql\Set'==$commentPropertyType)
 			throw new Exception();
 		$this->createProperty($class,$propertyName,$commentPropertyType);
-		if($this->setter){
+		if($this->setterGenerator){
 			$method=$class->addMethod('set'.ucfirst($propertyName));
 
 
 			$parameter=$method->addParameter($propertyName);
 
 			if (strlen($propertyType)>0)
-				$parameter->setTypeHint($propertyType);
+				$parameter->setType($propertyType);
 
 			$method->addBody('$this->'.$propertyName.' = $'.$propertyName.';');
 
@@ -66,7 +66,7 @@ trait TraitGetterSetter {
 	}
 
 	protected function createGetter(ClassType $class,string $propertyName,string $propertyType,string $commentPropertyType=null ,bool $nullable=false) {
-		if($this->getter){
+		if($this->getterGenerator){
 			$method=$class->addMethod('get'.ucfirst($propertyName));
 			$method->setBody('return $this->'.$propertyName.';');
 

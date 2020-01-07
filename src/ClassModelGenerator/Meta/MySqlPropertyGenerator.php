@@ -55,10 +55,10 @@ class MySqlPropertyGenerator extends CorePropertyGenerator {
 		$tableNameList=$entityMySqlGenerator->getMetaVariable()->getClassListFromString($tableName);
 		$this->phpNamespace->addUse($fullTableNameList);
 		$propertyList=lcfirst($tableNameList);
-		$this->generateSetter();
+		$this->enableSetterGenerator();
 		$this->createSetter($this->class,$propertyList,$fullTableNameList,$tableNameList,true);
 		$this->createGetter($this->class,$propertyList,$fullTableNameList,$tableNameList,false);
-		$this->setter = false;
+		$this->setterGenerator = false;
 
 		$classRow=$entityMySqlGenerator->getMetaVariable()->getClassRowNameFromString($tableName);
 		$fullClassRow=$entityMySqlGenerator->getMetaVariable()->getClassRowNameFromString($tableName,true);
@@ -70,7 +70,7 @@ class MySqlPropertyGenerator extends CorePropertyGenerator {
 
 
 		$method->addComment('@var '.$classRow.' '.$propertyRow);
-		$method->addParameter($propertyRow)->setTypeHint($fullClassRow);
+		$method->addParameter($propertyRow)->setType($fullClassRow);
 		$method->addBody('$this->'.$propertyList.'->add'.$classRow.'($'.$propertyRow.');');
 
 	 	$construct = $this->class->hasMethod('__construct') ? $this->class->getMethod('__construct') : $this->class->addMethod('__construct');
@@ -113,7 +113,7 @@ class MySqlPropertyGenerator extends CorePropertyGenerator {
 
 
 
-		$method->addParameter($classListVariable)->setTypeHint($classListNameSpace);
+		$method->addParameter($classListVariable)->setType($classListNameSpace);
 		$method->addBody('foreach ('.$classListVariableDollar.' as '.$classRowVariableDollar.'){');
 
 		$method->addBody(ConstantDefinition::TAB1.'/**');
@@ -140,13 +140,13 @@ class MySqlPropertyGenerator extends CorePropertyGenerator {
 		$fullClassRow=$entityMySqlGenerator->getMetaVariable()->getClassRowNameFromString($tableName,true);
 		$propertyRow=lcfirst($classRow);
 		$this->phpNamespace->addUse($fullClassRow);
-		$this->generateSetter();
+		$this->enableSetterGenerator();
 
 
 
 		$this->createSetter($this->class,$propertyRow,$fullClassRow,$classRow,true);
 		$this->createGetter($this->class,$propertyRow,$fullClassRow,$classRow,false);
-		$this->setter = false;
+		$this->setterGenerator = false;
 
 	}
 

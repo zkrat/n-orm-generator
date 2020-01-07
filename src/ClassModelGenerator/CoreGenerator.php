@@ -4,6 +4,9 @@
 namespace NOrmGenerator\ClassModelGenerator;
 
 
+use NOrmGenerator\ClassModelGenerator\File\FileSaver;
+use NOrmGenerator\ClassModelGenerator\MethodGenerator\CreateFromResultMethodGenerator;
+use NOrmGenerator\ClassModelGenerator\MethodGenerator\MetaCreateFromResultMethodGenerator;
 use NOrmGenerator\DataCollection\DataCollection;
 use NOrmGenerator\ClassModelGenerator\Helpers\StringManipulator;
 use NOrmGenerator\ClassModelGenerator\Logger\ILogger;
@@ -117,97 +120,26 @@ abstract class CoreGenerator {
 	private static $test=0;
 
 
-	protected function saveFile(MetaVariableConfiguration $metaVariableConfiguration, PhpNamespace $classModel,string $className) {
-		$dir=$metaVariableConfiguration->getDir();
-
-
-		$fileName=$className.'.php';
-		if (BarReport::hasBarReport())
-			BarReport::getBarReport()->addFile($fileName);
-		$filePath=$dir.DIRECTORY_SEPARATOR.$fileName;
-
-		if(file_exists($filePath) && class_exists($classModel->getName().'\\'.$className)){
-			$sourceClass=ClassType::from($classModel->getName().'\\'.$className);
-
-			foreach ($classModel->getClasses() as $destinationClassType){
-				/**
-				 * @var ClassType $destinationClassType
-				 */
-				if($sourceClass->getName()==$destinationClassType->getName()){
-
-					$this->checkDestinationMemers($sourceClass->getMethods(),$destinationClassType);
-					$this->checkDestinationMemers($sourceClass->getProperties(),$destinationClassType);
-					$this->checkDestinationMemers($sourceClass->getConstants(),$destinationClassType);
-
-					foreach ($sourceClass->getTraits() as $traitName){
-						if(!in_array($traitName,$destinationClassType->getTraits()))
-							$destinationClassType->addTrait($traitName);
-					}
-
-				}
-			}
-		}
-
-
-
-		if (!file_exists($filePath) || $metaVariableConfiguration->isOverwrite()){
-			$output='<?php'.PHP_EOL.PHP_EOL;
-			$output.=(string) $classModel;
-			FileSystem::createDir($dir);
-
-			file_put_contents($filePath,$output);
-			$this->logger->message($filePath);
-			$fullClassname=$classModel->getName().'\\'.$className;
-			if(!class_exists($fullClassname)){
-				require_once ($filePath);
-			}
-
-
-
-		}else{
-			Debugger::barDump($filePath,'already generated');
-		}
-
-	}
-
-		private function checkDestinationMemers($array,ClassType $destinationClassType){
-		return null;
-		foreach ($array as $memberName => $member){
-			/**
-			 * @var Method $member
-			 */
-			if(!$destinationClassType->hasProperty($memberName)){
-				if (($member instanceof  Method && is_string($member->getBody()) && strlen($member->getBody())>0))
-					$destinationClassType->addMember($member);
-				else
-					dump('unknown member:',$member);
-			}
-		}
-	}
-
-
 
 	protected function createMetaClassListFromTableName( string $tableName,$id='' ):PhpNamespace {
-
 		$classList=$this->metaVariable->getClassListFromString($tableName);
 		$classRow = $this->metaVariable->getClassRowNameFromString($tableName);
 
-		return $this->createClassList($tableName,$classList,$classRow,Row::class,ResultSet::class,$id);
-
+		return $this->createClassList($tableName,$classList,Row::class,ResultSet::class,$id);
 	}
 
 	protected function createClassListFromTableName( string $tableName,$id='' ,ForeignKeyList $forienKeyList=null):PhpNamespace {
 
 		$classList=$this->metaVariable->getClassListFromString($tableName);
 		$classRow = $this->metaVariable->getClassRowNameFromString($tableName);
-		return $this->createClassList($tableName,$classList,$classRow,ActiveRow::class,Selection::class,$id,$forienKeyList);
+		return $this->createClassList($tableName,$classList,ActiveRow::class,Selection::class,$id,$forienKeyList);
 	}
 
 
-	protected function createClassList(string $tableName,string $classList,string $classRowName,string $typeRow,string $typeList=null,string $id='',ForeignKeyList $forienKeyList=null ):PhpNamespace {
+	protected function createClassList(string $tableName,string $classList,string $typeRow,string $typeList=null,string $id='',ForeignKeyList $forienKeyList=null ):PhpNamespace {
 		$metaVariableConfiguration=$this->metaVariable->getMetaVariableConfiguration();
 		$classRowName=$this->metaVariable->getClassRowNameFromString($tableName);
-		// todo: remove $classRow;
+
 		$fullClassList=$this->metaVariable->getClassListFromString($tableName,true);
 		$fullClassRow=$this->metaVariable->getClassRowNameFromString($tableName,true);
 
@@ -215,42 +147,22 @@ abstract class CoreGenerator {
 
 		$phpNamespace=new PhpNamespace($metaVariableConfiguration->getNamespace());
 		$phpNamespace->addUse(DataCollection::class);
-		if (!is_null($typeList))
-			$phpNamespace->addUse($typeList);
-		$phpNamespace->addUse($typeRow);
-		$commentTypeRow=array_search($typeRow,$phpNamespace->getUses());
 		$myClassRow=$phpNamespace->addClass($classList);
-
-		$myClassRow->setExtends(DataCollection::class);
-		$method=$myClassRow->addMethod('createFromResult');
-		$method->setStatic(true);
-		$method->addParameter('resultSet')->setTypeHint($typeList);
-		$method->addBody('$class= new static();');
-		$method->addBody('foreach ($resultSet as $row){');
-		$method->addBody('  /**');
-		$method->addBody('  * @var '.$commentTypeRow.' $row');
-		$method->addBody('  */');
-
 
 		switch ($typeRow){
 			case ActiveRow::class:
-					$method->addBody('  if (!$row instanceof ActiveRow)');
-					$method->addBody('    continue;');
-					$method->addBody('  $arrayRow=  $row->toArray();');
+				$metaCreateFromResultMethodGenerator= new CreateFromResultMethodGenerator($myClassRow,$this->metaVariable,$tableName);
+				$metaCreateFromResultMethodGenerator->generate();
 				break;
-			default:
-				$method->addBody('  $arrayRow= (array) $row;');
+			case Row::class:
+				$metaCreateFromResultMethodGenerator= new MetaCreateFromResultMethodGenerator($myClassRow,$this->metaVariable,$tableName);
+				$metaCreateFromResultMethodGenerator->generate();
+				break;
 		}
-
-		$method->addBody( '  '.$variableName.' =' . $classRowName . '::create($arrayRow);');
-		$method->addBody( '  $class->add' . $classRowName . '('.$variableName.');// TODO: change check');
-		$method->addBody('}');
-		$method->addBody('return $class;');
-
 		
 		$method2=$myClassRow->addMethod($this->getAddClassMethod($classRowName));
 		$method2->addParameter($this->getAddClassMethodParameter($classRowName))
-		        ->setTypeHint($fullClassRow);
+		        ->setType($fullClassRow);
 		$method2->addBody('$this->data['.$id.'] = '.$this->getAddClassMethodParameter($classRowName,true) . ';');
 
 
@@ -296,8 +208,8 @@ abstract class CoreGenerator {
 		$method2->addBody( $this->getAddClassMethodParameter($classRowName,true) . '->setParent($this);');
 
 
+		FileSaver::create($metaVariableConfiguration,$phpNamespace,$classList)->saveFile();
 
-		$this->saveFile($metaVariableConfiguration,$phpNamespace,$classList);
 		return $phpNamespace;
 
 	}
@@ -314,7 +226,7 @@ abstract class CoreGenerator {
 		$subMethodName=$this->getAssocClassMethod($this->metaVariable->getClassListFromString($tableName));
 
 		$subMethod=$class->addMethod($subMethodName);
-		$subMethod->addParameter($subClassListVariable)->setTypeHint($fullSubClassList);
+		$subMethod->addParameter($subClassListVariable)->setType($fullSubClassList);
 		$subMethod->addBody('foreach ('.$subClassListDollarVariable.' as '.$subClassRowDollarVariable.'){');
 		$subMethod->addBody(ConstantDefinition::TAB1.'/**');
 		$subMethod->addBody(ConstantDefinition::TAB1.'* @var '.$subClassRow.' '.$subClassRowDollarVariable);

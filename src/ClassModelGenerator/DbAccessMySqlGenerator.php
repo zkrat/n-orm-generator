@@ -5,6 +5,7 @@ namespace NOrmGenerator\ClassModelGenerator;
 
 
 use NOrmGenerator\ClassModelGenerator\Exception\ForeignKeyException;
+use NOrmGenerator\ClassModelGenerator\File\FileSaver;
 use NOrmGenerator\ClassModelGenerator\Helpers\StringManipulator;
 use NOrmGenerator\ClassModelGenerator\Logger\ILogger;
 use NOrmGenerator\ClassModelGenerator\Meta\MySqlPhpProperty;
@@ -74,7 +75,7 @@ class DbAccessMySqlGenerator extends CoreGenerator {
 
 		$this->dbAccessClass= $this->dbAccessManager->addClass(DbAccessMySqlGenerator::DB_MANAGER_NAME);
 		$this->createConstrucor($this->dbAccessClass,false);
-		$this->generateGetter();
+		$this->enableGetterGenerator();
 	}
 
 
@@ -109,9 +110,8 @@ class DbAccessMySqlGenerator extends CoreGenerator {
 		$this->TESTcheckSubMethodDev($metaTableColoumnsMySqlDriver, $class,$forienKeyList);
 
 		$dbClassName =$this->metaVariable->getClassRowName($metaTableColoumnsMySqlDriver);
-		$this->saveFile($this->metaDb,$class->getNamespace(),$dbClassName );
+		FileSaver::create($this->metaDb,$class->getNamespace(),$dbClassName )->saveFile();
 		$this->resetExtra();
-
 
 	}
 
@@ -181,7 +181,7 @@ class DbAccessMySqlGenerator extends CoreGenerator {
 			$method= $class->getMethod($methodRefClassList);
 
 
-		$method->addParameter($refClassListVariable)->setTypeHint($refClassListNamespace);
+		$method->addParameter($refClassListVariable)->setType($refClassListNamespace);
 		$methodGetIKds=$this->dbEntity->getMetaVariable()->getClassListGetAllIdsArrayMethodFromString($referencedTableName);
 
 		$classListVariableDollar2=$this->dbEntity->getMetaVariable()->getClassListVariableFromString($referencedTableName);
@@ -208,7 +208,7 @@ class DbAccessMySqlGenerator extends CoreGenerator {
 
 		$referencedTableName = $metaTableColumnsForeinKeysMySqlDriver->getReferencedTableName();
 		$tableName = $metaTableColumnsForeinKeysMySqlDriver->getTableName();
-
+		$refColumn=$metaTableColumnsForeinKeysMySqlDriver->getColumnName();
 
 
 
@@ -227,7 +227,7 @@ class DbAccessMySqlGenerator extends CoreGenerator {
 			$methodAssocc = $class->getMethod($this->getAssocClassMethod($assocRefClassListMethod));
 		else{
 			$methodAssocc = $class->addMethod($this->getAssocClassMethod($assocRefClassListMethod));
-			$methodAssocc->addParameter($refClassListVariableName)->setTypeHint($assocRefClassList);
+			$methodAssocc->addParameter($refClassListVariableName)->setType($assocRefClassList);
 
 			if (!in_array($assocRefClassList,$class->getNamespace()->getUses()))
 				$class->getNamespace()->addUse($assocRefClassList);
@@ -236,7 +236,7 @@ class DbAccessMySqlGenerator extends CoreGenerator {
 		$methodAssocc->addBody(PHP_EOL.PHP_EOL);
 
 
-		$refColumn=$metaTableColumnsForeinKeysMySqlDriver->getColumnName();
+
 
 		$assocSubClass2=$this->getAssocClassMethod($assocRefClassListMethod);
 
@@ -297,7 +297,7 @@ class DbAccessMySqlGenerator extends CoreGenerator {
 		$classList =$this->dbEntity->getMetaVariable()->getClassListFromString($tableName);
 		$classListNamespace =$this->dbEntity->getMetaVariable()->getClassListFromString($tableName,true);
 		$method=$class->addMethod('getAll'.$classList.'ByIds')->setReturnType($classListNamespace);
-		$method->addParameter('ids')->setTypeHint('array');
+		$method->addParameter('ids')->setType('array');
 		$method->addBody('$row= $this->getAll()->where(\'id\',$ids);');
 		$method->addBody($this->getReturnList($classList));
 
@@ -322,7 +322,7 @@ class DbAccessMySqlGenerator extends CoreGenerator {
 				$property->setComment('@var Context $db');
 			}
 			$constructor->addParameter('db')
-			            ->setTypeHint(Context::class);
+			            ->setType(Context::class);
 
 			if (is_string($class->getExtends()) && $class->getExtends()==BaseModel::class || is_array($class->getExtends()) && in_array(BaseModel::class,$class->getExtends()))
 				$constructor->addBody('parent::__construct($db);');
@@ -336,7 +336,7 @@ class DbAccessMySqlGenerator extends CoreGenerator {
 			$class->addProperty('parent')->addComment('@var '.$parentTypeHint);
 			$parent=$constructor->addParameter('parent');
 			if(!is_null($parentTypeHint))
-				$parent->setTypeHint($this->metaVariable->getClassWithNamespace($parentTypeHint));
+				$parent->setType($this->metaVariable->getClassWithNamespace($parentTypeHint));
 
 			$constructor->addBody('$this->parent = $parent;');
 		}
@@ -381,8 +381,7 @@ class DbAccessMySqlGenerator extends CoreGenerator {
 
 		}
 
-		$this->saveFile($this->metaDb,$this->dbAccessManager,DbAccessMySqlGenerator::DB_MANAGER_NAME);
-
+		FileSaver::create($this->metaDb,$this->dbAccessManager,DbAccessMySqlGenerator::DB_MANAGER_NAME)->saveFile();
 	}
 
 	/**

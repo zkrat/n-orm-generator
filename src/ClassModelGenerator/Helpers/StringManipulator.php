@@ -32,7 +32,7 @@ class StringManipulator {
 
 
 	}
-	public static function getClasnameWithoutNamespace(string $className):string {
+	public static function getClassnameWithoutNamespace(string $className):string {
 		$path = explode('\\', $className);
 		return array_pop($path);
 
