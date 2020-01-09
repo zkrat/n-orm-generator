@@ -7,6 +7,7 @@ namespace NOrmGenerator\ClassModelGenerator;
 use NOrmGenerator\ClassModelGenerator\File\FileSaver;
 use NOrmGenerator\ClassModelGenerator\Helpers\StringManipulator;
 use NOrmGenerator\ClassModelGenerator\Logger\ILogger;
+use NOrmGenerator\ClassModelGenerator\Meta\IMetaTableColumnsForeinKeys;
 use NOrmGenerator\ClassModelGenerator\Meta\MySqlPhpProperty;
 use NOrmGenerator\ClassModelGenerator\Meta\MySqlPropertyGenerator;
 use NOrmGenerator\ClassModelGenerator\Traits\TraitClassFill;
@@ -29,9 +30,6 @@ class EntityMySqlGenerator extends CoreGenerator {
 	 * @var DbAccessMySqlGenerator
 	 */
 	protected $parent;
-
-	const CONFIG_NAMESPACE='namespaceEntity';
-	const CONFIG_DIR='dirEntity';
 
 	const PRIMARY_KEY='PRI';
 
@@ -72,6 +70,7 @@ class EntityMySqlGenerator extends CoreGenerator {
 						$classEntity->addMetaTableColumnsForeinKeysMySqlDriverReference($metaTableColumnsForeinKeysMySqlDriver,$this,$tableName);
 					}
 				}
+
 				if ($metaTableColoumnsMySqlDriver instanceof MetaTableColumnsMySqlDriver && $classEntity instanceof  MySqlPropertyGenerator)
 					$classEntity->addMetaTableColumnsMySqlDriver($metaTableColoumnsMySqlDriver);
 

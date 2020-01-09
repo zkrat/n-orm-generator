@@ -4,6 +4,7 @@
 namespace NOrmGenerator\ClassModelGenerator\File;
 
 
+use Model\Entity\BinariesRow;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Method;
 use Nette\PhpGenerator\PhpNamespace;
@@ -87,6 +88,13 @@ class FileSaver {
 	private function getFilePath(){
 		$dir=$this->metaVariableConfiguration->getDir();
 		$fileName=$this->className.'.php';
+		if (FALSE && $this->className=='MetaTableColumnsForeinKeysMySqlDriver'){
+			try{
+				throw new \Exception();
+			}catch (\Exception $e){
+				Debugger::log($e);
+			}
+		}
 		BarReport::addStaticFile($fileName);
 		return $dir.DIRECTORY_SEPARATOR.$fileName;
 	}

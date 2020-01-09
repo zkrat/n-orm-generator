@@ -5,7 +5,11 @@ namespace NOrmGenerator\ClassModelGenerator;
 
 
 use NOrmGenerator\ClassModelGenerator\File\FileSaver;
+use NOrmGenerator\ClassModelGenerator\MethodGenerator\AddClassRowMethodGenerator;
+use NOrmGenerator\ClassModelGenerator\MethodGenerator\ArrayKeysMethodMethodGenerator;
+use NOrmGenerator\ClassModelGenerator\MethodGenerator\AssocClassMethodGenerator;
 use NOrmGenerator\ClassModelGenerator\MethodGenerator\CreateFromResultMethodGenerator;
+use NOrmGenerator\ClassModelGenerator\MethodGenerator\GetIteratorMethodGenerator;
 use NOrmGenerator\ClassModelGenerator\MethodGenerator\MetaCreateFromResultMethodGenerator;
 use NOrmGenerator\DataCollection\DataCollection;
 use NOrmGenerator\ClassModelGenerator\Helpers\StringManipulator;
@@ -122,91 +126,38 @@ abstract class CoreGenerator {
 
 
 	protected function createMetaClassListFromTableName( string $tableName,$id='' ):PhpNamespace {
-		$classList=$this->metaVariable->getClassListFromString($tableName);
-		$classRow = $this->metaVariable->getClassRowNameFromString($tableName);
-
-		return $this->createClassList($tableName,$classList,Row::class,ResultSet::class,$id);
+		return $this->createClassList($tableName,Row::class,$id);
 	}
 
 	protected function createClassListFromTableName( string $tableName,$id='' ,ForeignKeyList $forienKeyList=null):PhpNamespace {
-
-		$classList=$this->metaVariable->getClassListFromString($tableName);
-		$classRow = $this->metaVariable->getClassRowNameFromString($tableName);
-		return $this->createClassList($tableName,$classList,ActiveRow::class,Selection::class,$id,$forienKeyList);
+		return $this->createClassList($tableName,ActiveRow::class,$id,$forienKeyList);
 	}
 
 
-	protected function createClassList(string $tableName,string $classList,string $typeRow,string $typeList=null,string $id='',ForeignKeyList $forienKeyList=null ):PhpNamespace {
+	protected function createClassList(string $tableName,string $typeRow,string $id='',ForeignKeyList $forienKeyList=null ):PhpNamespace {
+		$classList=$this->metaVariable->getClassListFromString($tableName);
 		$metaVariableConfiguration=$this->metaVariable->getMetaVariableConfiguration();
-		$classRowName=$this->metaVariable->getClassRowNameFromString($tableName);
-
-		$fullClassList=$this->metaVariable->getClassListFromString($tableName,true);
-		$fullClassRow=$this->metaVariable->getClassRowNameFromString($tableName,true);
-
-		$variableName=$this->metaVariable->addDolar($classRowName);
 
 		$phpNamespace=new PhpNamespace($metaVariableConfiguration->getNamespace());
 		$phpNamespace->addUse(DataCollection::class);
 		$myClassRow=$phpNamespace->addClass($classList);
 
+
+
 		switch ($typeRow){
 			case ActiveRow::class:
-				$metaCreateFromResultMethodGenerator= new CreateFromResultMethodGenerator($myClassRow,$this->metaVariable,$tableName);
-				$metaCreateFromResultMethodGenerator->generate();
+				CreateFromResultMethodGenerator::quickGenerate($myClassRow,$this->metaVariable,$tableName);
 				break;
 			case Row::class:
-				$metaCreateFromResultMethodGenerator= new MetaCreateFromResultMethodGenerator($myClassRow,$this->metaVariable,$tableName);
-				$metaCreateFromResultMethodGenerator->generate();
+				MetaCreateFromResultMethodGenerator::quickGenerate($myClassRow,$this->metaVariable,$tableName);
 				break;
 		}
-		
-		$method2=$myClassRow->addMethod($this->getAddClassMethod($classRowName));
-		$method2->addParameter($this->getAddClassMethodParameter($classRowName))
-		        ->setType($fullClassRow);
-		$method2->addBody('$this->data['.$id.'] = '.$this->getAddClassMethodParameter($classRowName,true) . ';');
+		GetIteratorMethodGenerator::quickGenerate($myClassRow,$this->metaVariable,$tableName);
 
-
-
-		$dataProperty=$this->getDataProperty($tableName);
-
-		$this->createArrayKeysMethod($myClassRow,$tableName,$dataProperty);
-
-
-
-
-
-		if ($forienKeyList instanceof ForeignKeyList){
-			$array =$forienKeyList->getTableForeignKeyArray($tableName);
-
-
-			foreach ($array as $metaTableColumnsForeinKeysMySqlDriver){
-				/**
-				 * @var MetaTableColumnsForeinKeysMySqlDriver $metaTableColumnsForeinKeysMySqlDriver
-				 */
-				$tableName=$metaTableColumnsForeinKeysMySqlDriver->getReferencedTableName();
-				$subTableName=StringManipulator::underscoreToCamelCase($tableName,true);
-				$dataProperty=$this->getDataProperty($tableName);
-
-				$subClassRow = $this->metaVariable->getClassRowNameFromString($tableName);
-				$fullSubClassRow = $this->metaVariable->getClassRowNameFromString($tableName,true);
-				$this->metaVariable->getMethodReferenceId($tableName);
-				$myClassRow->addProperty($dataProperty,[])
-				           ->setComment('@var '.$subClassRow.'[]')
-				           ->setVisibility(ClassType::VISIBILITY_PRIVATE);
-
-				$this->createAssocClassMethod($myClassRow,$metaTableColumnsForeinKeysMySqlDriver,$classRowName);
-
-				$this->createArrayKeysMethod($myClassRow,$tableName,$dataProperty);
-				$vatiable=$this->getAddClassMethodParameter($classRowName,true);
-				$method2->addBody('$this->'.$dataProperty.'['.$vatiable.'->get'.$subTableName.'Id()]['.$id.'] = '.$vatiable. ';');
-
-				$subClassList = $this->metaVariable->getClassListFromString($tableName);
-
-			}
-		}
-
-		$method2->addBody( $this->getAddClassMethodParameter($classRowName,true) . '->setParent($this);');
-
+		$array = $forienKeyList instanceof ForeignKeyList ?  $forienKeyList->getTableForeignKeyArray($tableName) : [];
+		AddClassRowMethodGenerator::quickGenerate($myClassRow,$this->metaVariable,$tableName,['id'=>$id,'array'=>$array]);
+		AssocClassMethodGenerator::quickGenerate($myClassRow,$this->metaVariable,$tableName,['array'=>$array]);
+		ArrayKeysMethodMethodGenerator::quickGenerate($myClassRow,$this->metaVariable,$tableName,['array'=>$array]);
 
 		FileSaver::create($metaVariableConfiguration,$phpNamespace,$classList)->saveFile();
 
@@ -281,18 +232,7 @@ abstract class CoreGenerator {
 		$getIdsMethod->setBody('return array_keys($this->'.$property.');');
 	}
 
-	protected function getAddClassMethodParameter(string $className,bool $includeDolar=false):string{
-		$parameter=lcfirst($className);
-		if ($includeDolar)
-			$parameter='$'.$parameter;
 
-		return $parameter;
-	}
-
-	protected function getDataProperty(string  $tableName=''):string {
-		$subTableName= $tableName=='' ? '' : StringManipulator::underscoreToCamelCase($tableName,true);
-		return 'data'.$subTableName;
-	}
 
 
 	/**

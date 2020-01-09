@@ -85,9 +85,24 @@ class MetaPropertyGenerator extends CorePropertyGenerator {
 
 	}
 
+	private function addUse( string $class ){
+		$namespace=substr($class,0,strrpos($class,'\\'));
+		if($this->phpNamespace->getName()!=$namespace){
+			$this->phpNamespace->addUse($class);
+		}
+
+	}
+
 	public function addTrait( string $class ) {
 		$this->class->addTrait($class);
-		$this->phpNamespace->addUse($class);
+		$this->addUse($class);
+	}
+
+	public function addImplementArray( array $implemets=[] ) {
+		foreach ($implemets as $imp){
+			$this->class->addImplement($imp);
+			$this->addUse($imp);
+		}
 	}
 
 

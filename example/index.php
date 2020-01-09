@@ -6,7 +6,7 @@ require __DIR__ . '/../vendor/autoload.php';
 use NOrmGenerator\ClassModelGenerator\DbAccessMySqlGenerator;
 use NOrmGenerator\ClassModelGenerator\MetaDriverGenerator;
 use Nette\Neon\Neon;
-
+use Model\DbAccess\DbAccessManager;
 
 $tempDir=__DIR__.'/tmp/';
 $robotLoader=new \Nette\Loaders\RobotLoader();
@@ -26,7 +26,7 @@ $dsn='mysql:host=localhost;dbname=nette_db';
 $user='root';
 $password='1234';
 
-
+\Tracy\Debugger::$logDirectory=__DIR__.'/log';
 
 
 
@@ -52,3 +52,18 @@ $datebase=$metaDriverGenerator->getDatabaseName();
 $forienKeyList =$metaDriverGenerator->getForeinKeyList($datebase);
 
 $entityGenerator->generateFromForienKeyList($forienKeyList);
+$dbManager =new DbAccessManager($context);
+
+$binariesList=$dbManager->getDbBinaries()->getAllBinariesList();
+
+
+
+
+
+echo 'BinariList:'.$binariesList->count().PHP_EOL;
+echo 'DatetimeTable:'.$dbManager->getDbDatetimeTable()->getAllDatetimeTableList()->count().PHP_EOL;
+echo 'Geos:'.$dbManager->getDbGeos()->getAllGeosList()->count().PHP_EOL;
+echo 'Lists:'.$dbManager->getDbLists()->getAllListsList()->count().PHP_EOL;
+echo 'Numbers:'.$dbManager->getDbNumbers()->getAllNumbersList()->count().PHP_EOL;
+echo 'Strings:'.$dbManager->getDbStrings()->getAllStringsList()->count().PHP_EOL;
+echo 'TableAssoc:'.$dbManager->getDbTableAssoc()->getAllTableAssocList()->count().PHP_EOL;

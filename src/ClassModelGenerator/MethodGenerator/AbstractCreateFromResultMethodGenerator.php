@@ -4,39 +4,14 @@
 namespace NOrmGenerator\ClassModelGenerator\MethodGenerator;
 
 
-use Nette\Database\Table\ActiveRow;
-use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Method;
-use NOrmGenerator\ClassModelGenerator\Variables\MetaVariable;
 use NOrmGenerator\DataCollection\DataCollection;
 
-abstract class AbstractCreateFromResultMethodGenerator implements IMethodGenerator {
+abstract class AbstractCreateFromResultMethodGenerator extends AbstractMethodGenerator implements IMethodGenerator {
 
 
-	/**
-	 * @var MetaVariable
-	 */
-	protected  $metaVariable;
 
-	/**
-	 * @var ClassType
-	 */
-	protected $class;
-
-	/**
-	 * @var string
-	 */
-	protected $tableName;
-
-
-	public function __construct(ClassType $class,MetaVariable $metaVariable,$tableName) {
-		$this->class = $class;
-		$this->metaVariable = $metaVariable;
-		$this->tableName = $tableName;
-	}
-
-
-	public function generate(){
+	public function generate(array $config=[]){
 		$typeRow= $this->getTypeRow();
 
 		$classRowName=$this->metaVariable->getClassRowNameFromString($this->tableName);

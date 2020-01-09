@@ -3,6 +3,7 @@
 namespace NOrmGenerator\ClassModelGenerator;
 
 use NOrmGenerator\ClassModelGenerator\File\FileSaver;
+use NOrmGenerator\ClassModelGenerator\Meta\IMetaTableColumnsForeinKeys;
 use NOrmGenerator\DataCollection\DataCollection;
 use NOrmGenerator\ClassModelGenerator\Exception\ForeignKeyException;
 use NOrmGenerator\ClassModelGenerator\Meta\MetaPropertyGenerator;
@@ -129,7 +130,8 @@ class MetaDriverGenerator extends CoreGenerator {
 
 		}
 		$metaDatabaseClass=MetaDriverGenerator::DB_FOREIN_KEYS_PREFIX.$this->getDriverName();
-		$this->generateClassFromRow($rowTable,$metaDatabaseClass);
+		$implemets=[IMetaTableColumnsForeinKeys::class];
+		$this->generateClassFromRow($rowTable,$metaDatabaseClass,$implemets);
 
 	}
 
@@ -137,17 +139,22 @@ class MetaDriverGenerator extends CoreGenerator {
 	/**
 	 * @param IRow|null $row
 	 * @param string $className
+	 * @param string[] $implemets
 	 */
 
-	private function generateClassFromRow(IRow $row=null,string $className){
+	private function generateClassFromRow(IRow $row=null,string $className,array $implemets=[]){
 		if ($row instanceof IRow){
 			$arrayRow=(array) $row;
-			$this->generateClassFromArray($arrayRow,$className);
+			$this->generateClassFromArray($arrayRow,$className,$implemets);
 		}
 	}
 
-
-	private function generateClassFromArray(array $arrayRow,string $className){
+	/**
+	 * @param array $arrayRow
+	 * @param string $className
+	 * @param string[] $implemets
+	 */
+	private function generateClassFromArray(array $arrayRow,string $className,array $implemets=[]){
 		$classRow=$this->metaVariable->getClassRowNameFromString($className);
 
 		$propertyGenerator= new MetaPropertyGenerator($this->metaDriver,$classRow);
@@ -157,9 +164,13 @@ class MetaDriverGenerator extends CoreGenerator {
 
 		foreach ($arrayRow as $propertyName => $value){
 			$propertyGenerator->addProperty($propertyName , $value);
-
 		}
+
 		$class=$propertyGenerator->getClass();
+
+		$propertyGenerator->addImplementArray($implemets);
+
+
 		$classList =$this->metaVariable->getClassListFromString($className);
 		$namespaoceClassList =$this->metaVariable->getClassListFromString($className,true);
 
